@@ -1,0 +1,27 @@
+version: '3.9'
+services:
+  redis:
+    image: redis:7-alpine
+    ports: ['6379:6379']
+    volumes: [redis-data:/data]
+
+  server:
+    build: .
+    command: npm run start:server
+    ports: ['3000:3000']
+    env_file: .env
+    depends_on: [redis]
+
+  worker:
+    build: .
+    command: npm run start:worker
+    env_file: .env
+    depends_on: [redis]
+    # Worker cần access Docker socket để chạy sandbox
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    deploy:
+      replicas: 2
+
+volumes:
+  redis-data:
